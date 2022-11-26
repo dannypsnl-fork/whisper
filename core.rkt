@@ -7,6 +7,9 @@
 (require "term.rkt"
          "val.rkt")
 
+(: fresh : Symbol -> Symbol)
+(define (fresh v) (if (eqv? v '_) v (gensym v)))
+
 (define-type Env (Listof (Pairof Name Val)))
 (define-type Ctx (Listof (Pairof Name VTy)))
 
@@ -42,7 +45,7 @@
 (define (check env ctx tm ty)
   (match* {tm ty}
     [{(Lam x t) (VPi p-x a b)}
-     (define x- (gensym p-x))
+     (define x- (fresh p-x))
      (check (dict-set env x (VVar x-))
             (dict-set ctx x a)
             t
@@ -80,21 +83,21 @@
   (match* {a b}
     [{(VUniv) (VUniv)} #t]
     [{(VPi x- a b) (VPi _ a- b-)}
-     (define x (gensym x-))
+     (define x (fresh x-))
      (and (conv env a a-)
           (conv (dict-set env x (VVar x))
                 (b (VVar x))
                 (b- (VVar x))))]
     [{(VLam x- t) (VLam _ t-)}
-     (define x (gensym x-))
+     (define x (fresh x-))
      (conv (dict-set env x (VVar x))
            (t (VVar x)) (t- (VVar x)))]
     [{(VLam x- t) u}
-     (define x (gensym x-))
+     (define x (fresh x-))
      (conv (dict-set env x (VVar x))
            (t (VVar x)) (VApp u (VVar x)))]
     [{u (VLam x- t)}
-     (define x (gensym x-))
+     (define x (fresh x-))
      (conv (dict-set env x (VVar x))
            (VApp u (VVar x)) (t (VVar x)))]
     [{(VVar a) (VVar b)} (equal? a b)]
@@ -106,12 +109,12 @@
     [(VUniv) (Univ)]
     [(VVar x) (Var x)]
     [(VApp t u) (App (readback env t) (readback env u))]
-    [(VLam x- t) (define x (gensym x-))
+    [(VLam x- t) (define x (fresh x-))
                  (Lam x
                       (readback (dict-set env x (VVar x))
                                 (t (VVar x))))]
     [(VPi x- a b)
-     (define x (gensym x-))
+     (define x (fresh x-))
      (Pi x
          (readback env a)
          (readback (dict-set env x (VVar x)) (b (VVar x))))]))
