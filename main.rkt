@@ -8,7 +8,9 @@
   (command-line
    #:program "whisper"
    #:args ()
-   ;   let Nat  : U = (N : U) -> (N -> N) -> N -> N;
-   (define ty (infer-empty (parse #'(let Nat : U = U
-                                      in Nat))))
-   (printf "type = ~a~n" (readback '() ty))))
+   ; let Nat : U = (N : U) -> (N -> N) -> N -> N;
+   (define tm #'(let id : (((A : U) -> A) -> A) = (lam A (lam x x))
+                  in (id U)))
+   (printf "term ~a~n" (parse tm))
+   (define ty (infer-empty (parse tm)))
+   (printf "type of term ~a is ~a~n" tm (readback '() ty))))
