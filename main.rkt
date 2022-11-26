@@ -1,24 +1,14 @@
 #lang racket
+(require "parse.rkt"
+         "core.rkt")
 
 (module+ main
   (require racket/cmdline)
 
-  (define who (make-parameter "world"))
   (command-line
-    #:program "whisper"
-    #:once-each
-    [("-n" "--name") name "Who to say hello to" (who name)]
-    #:args ()
-    (printf "hello ~a~n" (who))))
-
-(module+ test
-  (require rackunit)
-
-  (define expected 1)
-  (define actual 1)
-
-  (test-case
-    "Example Test"
-    (check-equal? actual expected))
-
-  (test-equal? "Shortcut Equal Test" actual expected))
+   #:program "whisper"
+   #:args ()
+   ;   let Nat  : U = (N : U) -> (N -> N) -> N -> N;
+   (define ty (infer-empty (parse #'(let Nat : U = U
+                                      in Nat))))
+   (printf "type = ~a~n" (readback '() ty))))
