@@ -28,7 +28,7 @@
   #:property prop:custom-write
   (λ (v port _mode)
     (match-define (Pi x a b) v)
-    (fprintf port "Π(~a : ~a).~a" x a b))
+    (fprintf port "(~a : ~a) → ~a" x a b))
   #:transparent)
 (struct Let ([x : Name] [a : Ty] [t : Tm] [body : Tm])
   #:property prop:custom-write
