@@ -6,10 +6,10 @@ Current status
 $ racket main.rkt
 type of term:
 
-let id : Π(A : 𝕌).Π(_ : A).A = λA.λx.x;
+let id : (A : 𝕌) → (_ : A) → A = λA.λx.x;
 id 𝕌
 
 is
 
-Π(_ : 𝕌).𝕌
+(_ : 𝕌) → 𝕌
 ```
