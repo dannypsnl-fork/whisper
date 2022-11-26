@@ -1,14 +1,15 @@
 # whisper
 
-[![Test](https://github.com/dannypsnl/whisper/actions/workflows/racket-test.yml/badge.svg)](https://github.com/dannypsnl/whisper/actions/workflows/racket-test.yml)
-[![Coverage](https://badgen.net/https/dannypsnl.github.io/whisper/coverage/badge.json)](https://dannypsnl.github.io/whisper/coverage)
+Current status
 
-### How to use
+```shell
+$ racket main.rkt
+type of term:
 
-```sh
-# start replacing process, the script will ask some problems to make your project
-./replace.sh
+let id : Π(A : 𝕌).Π(_ : A).A = λA.λx.x;
+id 𝕌
 
-# commit
-rm ./replace.sh && git add . && git commit -m "rename"
+is
+
+Π(_ : 𝕌).𝕌
 ```
