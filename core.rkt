@@ -5,7 +5,9 @@
                [dict-ref (∀ (a) ((Listof (Pairof Name a)) Name -> a))]
                [dict-set (∀ (a) ((Listof (Pairof Name a)) Name a -> (Listof (Pairof Name a))))])
 (require "term.rkt"
-         "val.rkt")
+         "val.rkt"
+         ;; macro `match+`
+         "match-plus.rkt")
 
 (: fresh : Symbol -> Symbol)
 (define (fresh v) (if (eqv? v '_) v (gensym v)))
@@ -43,23 +45,26 @@
 
 (: check : Env Ctx Tm VTy -> Void)
 (define (check env ctx tm ty)
-  (match* {tm ty}
-    [{(Lam x t) (VPi (app fresh x-) a b)}
-     (check (dict-set env x (VVar x-))
-            (dict-set ctx x a)
-            t
-            (b (VVar x-)))]
-    [{(Let x a t u) ty}
-     (check env ctx a (VUniv))
-     (define a- (eval env a))
-     (check env ctx t a-)
-     (check (dict-set env x (eval env t)) ;; x := t
-            (dict-set ctx x a-)           ;; x : a
-            u
-            ty)]
-    [{_ _} (define ty- (infer env ctx tm))
-           (unless (conv env ty- ty)
-             (error 'type-mismatched))]))
+  (match+
+   tm ty #:with
+   [(Lam x t)
+    (VPi (app fresh x-) a b) =>
+    (check (dict-set env x (VVar x-))
+           (dict-set ctx x a)
+           t
+           (b (VVar x-)))]
+   [(Let x a t u)
+    _ =>
+    (check env ctx a (VUniv))
+    (define a- (eval env a))
+    (check env ctx t a-)
+    (check (dict-set env x (eval env t)) ;; x := t
+           (dict-set ctx x a-)           ;; x : a
+           u
+           ty)]
+   [_ _ => (define ty- (infer env ctx tm))
+      (unless (conv env ty- ty)
+        (error 'type-mismatched))]))
 
 (: eval : Env Tm -> Val)
 (define (eval env tm)
@@ -79,24 +84,29 @@
 
 (: conv : Env Val Val -> Boolean)
 (define (conv env a b)
-  (match* {a b}
-    [{(VUniv) (VUniv)} #t]
-    [{(VPi (app fresh x) a b) (VPi _ a- b-)}
-     (and (conv env a a-)
-          (conv (dict-set env x (VVar x))
-                (b (VVar x))
-                (b- (VVar x))))]
-    [{(VLam (app fresh x) t) (VLam _ t-)}
-     (conv (dict-set env x (VVar x))
-           (t (VVar x)) (t- (VVar x)))]
-    [{(VLam (app fresh x) t) u}
-     (conv (dict-set env x (VVar x))
-           (t (VVar x)) (VApp u (VVar x)))]
-    [{u (VLam (app fresh x) t)}
-     (conv (dict-set env x (VVar x))
-           (VApp u (VVar x)) (t (VVar x)))]
-    [{(VVar a) (VVar b)} (equal? a b)]
-    [{(VApp t u) (VApp t- u-)} (and (conv env t t-) (conv env u u-))]))
+  (match+
+   a b #:with
+   [(VUniv) (VUniv) => #t]
+   [(VPi (app fresh x) a b)
+    (VPi _ a- b-) =>
+    (and (conv env a a-)
+         (conv (dict-set env x (VVar x))
+               (b (VVar x))
+               (b- (VVar x))))]
+   [(VLam (app fresh x) t)
+    (VLam _ t-) =>
+    (conv (dict-set env x (VVar x))
+          (t (VVar x)) (t- (VVar x)))]
+   [(VLam (app fresh x) t)
+    u =>
+    (conv (dict-set env x (VVar x))
+          (t (VVar x)) (VApp u (VVar x)))]
+   [u
+    (VLam (app fresh x) t) =>
+    (conv (dict-set env x (VVar x))
+          (VApp u (VVar x)) (t (VVar x)))]
+   [(VVar a) (VVar b) => (equal? a b)]
+   [(VApp t u) (VApp t- u-) => (and (conv env t t-) (conv env u u-))]))
 
 (: readback : Env Val -> Tm)
 (define (readback env v)
