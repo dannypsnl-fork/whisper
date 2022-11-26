@@ -24,7 +24,7 @@
                   (check env ctx u a)
                   (b (eval env u))]
                  [_ (error 'bad-app)])]
-    [(Lam _ _) (error 'cannot-infer-lambda)]
+    [(Lam _ _) (error 'cannot-infer-lambda (format "~a" tm))]
     [(Pi x a b) (check env ctx a (VUniv))
                 (check (dict-set env x (VVar x))     ;; x := #x
                        (dict-set ctx x (eval env a)) ;; x : a
@@ -41,8 +41,8 @@
 (: check : Env Ctx Tm VTy -> Void)
 (define (check env ctx tm ty)
   (match* {tm ty}
-    [{(Lam x t) (Pi x-p a b)}
-     (define x- (gensym x-p))
+    [{(Lam x t) (VPi p-x a b)}
+     (define x- (gensym p-x))
      (check (dict-set env x (VVar x-))
             (dict-set ctx x a)
             t

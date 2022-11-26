@@ -1,6 +1,7 @@
 #lang info
 (define collection "whisper")
-(define deps '("base"))
+(define deps '("base"
+               "reporter"))
 (define build-deps '("rackunit-lib"
                      "scribble-lib" "racket-doc"
                      ; coverage
