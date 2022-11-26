@@ -44,8 +44,7 @@
 (: check : Env Ctx Tm VTy -> Void)
 (define (check env ctx tm ty)
   (match* {tm ty}
-    [{(Lam x t) (VPi p-x a b)}
-     (define x- (fresh p-x))
+    [{(Lam x t) (VPi (app fresh x-) a b)}
      (check (dict-set env x (VVar x-))
             (dict-set ctx x a)
             t
@@ -82,22 +81,18 @@
 (define (conv env a b)
   (match* {a b}
     [{(VUniv) (VUniv)} #t]
-    [{(VPi x- a b) (VPi _ a- b-)}
-     (define x (fresh x-))
+    [{(VPi (app fresh x) a b) (VPi _ a- b-)}
      (and (conv env a a-)
           (conv (dict-set env x (VVar x))
                 (b (VVar x))
                 (b- (VVar x))))]
-    [{(VLam x- t) (VLam _ t-)}
-     (define x (fresh x-))
+    [{(VLam (app fresh x) t) (VLam _ t-)}
      (conv (dict-set env x (VVar x))
            (t (VVar x)) (t- (VVar x)))]
-    [{(VLam x- t) u}
-     (define x (fresh x-))
+    [{(VLam (app fresh x) t) u}
      (conv (dict-set env x (VVar x))
            (t (VVar x)) (VApp u (VVar x)))]
-    [{u (VLam x- t)}
-     (define x (fresh x-))
+    [{u (VLam (app fresh x) t)}
      (conv (dict-set env x (VVar x))
            (VApp u (VVar x)) (t (VVar x)))]
     [{(VVar a) (VVar b)} (equal? a b)]
@@ -109,12 +104,11 @@
     [(VUniv) (Univ)]
     [(VVar x) (Var x)]
     [(VApp t u) (App (readback env t) (readback env u))]
-    [(VLam x- t) (define x (fresh x-))
-                 (Lam x
-                      (readback (dict-set env x (VVar x))
-                                (t (VVar x))))]
-    [(VPi x- a b)
-     (define x (fresh x-))
+    [(VLam (app fresh x) t)
+     (Lam x
+          (readback (dict-set env x (VVar x))
+                    (t (VVar x))))]
+    [(VPi (app fresh x) a b)
      (Pi x
          (readback env a)
          (readback (dict-set env x (VVar x)) (b (VVar x))))]))
