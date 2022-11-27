@@ -10,7 +10,7 @@
          "match-plus.rkt")
 
 (: fresh : Symbol -> Symbol)
-(define (fresh v) (if (eqv? v '_) v (gensym v)))
+(define (fresh v) (if (eq? v '_) v (gensym v)))
 
 (define-type Env (Listof (Pairof Name Val)))
 (define-type Ctx (Listof (Pairof Name VTy)))
